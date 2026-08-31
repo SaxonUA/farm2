@@ -108,14 +108,17 @@
       width: 68px;
       height: 96px;
 
-      perspective: 420px;
+      perspective: 520px;
+      perspective-origin: 50% 50%;
 
       border-radius: 8px;
 
       background: #111;
 
       box-shadow:
-        0 3px 7px rgba(0, 0, 0, 0.65);
+        0 3px 7px rgba(0, 0, 0, 0.70),
+        inset 0 1px 0 rgba(255, 255, 255, 0.035),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.85);
 
       overflow: hidden;
 
@@ -123,6 +126,8 @@
       font-weight: 700;
 
       color: #eeeeee;
+
+      transform-style: preserve-3d;
     }
 
 
@@ -135,13 +140,23 @@
 
       left: 0;
       right: 0;
-      top: 50%;
+      top: calc(50% - 1px);
 
-      height: 1px;
+      height: 2px;
 
-      background: rgba(0, 0, 0, 0.82);
+      background:
+        linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.96) 0%,
+          rgba(28, 28, 28, 0.98) 48%,
+          rgba(0, 0, 0, 0.96) 100%
+        );
 
-      z-index: 20;
+      box-shadow:
+        0 -1px 0 rgba(255, 255, 255, 0.035),
+        0 1px 2px rgba(0, 0, 0, 0.95);
+
+      z-index: 30;
 
       pointer-events: none;
     }
@@ -229,36 +244,107 @@
        FLIP АНІМАЦІЯ
     ========================================= */
 
-    .flip-top {
-      z-index: 10;
+    .static-top,
+    .static-bottom {
+      z-index: 1;
+    }
 
-      transform-origin: bottom;
+
+    .flip-top {
+      z-index: 12;
+
+      transform-origin: 50% 100%;
+      transform: rotateX(0deg);
+
+      will-change: transform;
     }
 
 
     .flip-bottom {
-      z-index: 9;
+      z-index: 11;
 
-      transform-origin: top;
-
+      transform-origin: 50% 0%;
       transform: rotateX(90deg);
+
+      will-change: transform;
     }
 
 
     /*
-      Швидший flip.
-      Старий був приблизно 0.22-0.24 сек.
+      ТІНІ НА РУХОМИХ ПОЛОВИНАХ.
+
+      Вони змінюються разом із кутом,
+      тому цифра виглядає не як простий
+      rotateX, а як справжня пластина.
+    */
+
+    .flip-top::after,
+    .flip-bottom::after {
+      content: "";
+
+      position: absolute;
+      inset: 0;
+
+      pointer-events: none;
+
+      z-index: 5;
+    }
+
+
+    .flip-top::after {
+      background:
+        linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.00) 0%,
+          rgba(0, 0, 0, 0.10) 42%,
+          rgba(0, 0, 0, 0.72) 100%
+        );
+
+      opacity: 0;
+    }
+
+
+    .flip-bottom::after {
+      background:
+        linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.72) 0%,
+          rgba(0, 0, 0, 0.16) 48%,
+          rgba(255, 255, 255, 0.025) 100%
+        );
+
+      opacity: 1;
+    }
+
+
+    /*
+      Реальний двоетапний переворот:
+
+      1. стара верхня половина падає до центру;
+      2. нова нижня половина розкривається від центру.
     */
 
     .flip-digit.play .flip-top {
       animation:
-        flipTop 0.075s linear forwards;
+        flipTop 0.0035s cubic-bezier(0.52, 0.02, 0.82, 0.48) forwards;
+    }
+
+
+    .flip-digit.play .flip-top::after {
+      animation:
+        flipTopShadow 0.0035s ease-in forwards;
     }
 
 
     .flip-digit.play .flip-bottom {
       animation:
-        flipBottom 0.075s linear 0.06s forwards;
+        flipBottom 0.004s cubic-bezier(0.18, 0.58, 0.34, 1.00) 0.003s forwards;
+    }
+
+
+    .flip-digit.play .flip-bottom::after {
+      animation:
+        flipBottomShadow 0.004s ease-out 0.003s forwards;
     }
 
 
@@ -268,8 +354,33 @@
         transform: rotateX(0deg);
       }
 
+      35% {
+        transform: rotateX(-28deg);
+      }
+
+      72% {
+        transform: rotateX(-67deg);
+      }
+
       100% {
         transform: rotateX(-90deg);
+      }
+
+    }
+
+
+    @keyframes flipTopShadow {
+
+      0% {
+        opacity: 0.05;
+      }
+
+      55% {
+        opacity: 0.62;
+      }
+
+      100% {
+        opacity: 1;
       }
 
     }
@@ -281,8 +392,37 @@
         transform: rotateX(90deg);
       }
 
+      30% {
+        transform: rotateX(64deg);
+      }
+
+      68% {
+        transform: rotateX(22deg);
+      }
+
+      88% {
+        transform: rotateX(-3deg);
+      }
+
       100% {
         transform: rotateX(0deg);
+      }
+
+    }
+
+
+    @keyframes flipBottomShadow {
+
+      0% {
+        opacity: 1;
+      }
+
+      55% {
+        opacity: 0.38;
+      }
+
+      100% {
+        opacity: 0;
       }
 
     }
@@ -472,7 +612,7 @@
       700...
     */
 
-    const MIN_COUNT_STEP = 100;
+    const MIN_COUNT_STEP = 1;
 
 
     /*
@@ -494,7 +634,7 @@
       3600 = 3.6 секунди
     */
 
-    const COUNT_DURATION = 3600;
+    const COUNT_DURATION = 40;
 
 
     /*
@@ -513,7 +653,7 @@
       flip встигав завершитися.
     */
 
-    const MIN_STEP_DELAY = 165;
+    const MIN_STEP_DELAY = 1;
 
 
 
@@ -637,13 +777,20 @@
 
 
       /*
-        Старе значення
+        ФІЗИЧНО ПРАВИЛЬНІ ШАРИ FLIP:
+
+        static-top    = вже НОВА верхня половина
+        static-bottom = ще СТАРА нижня половина
+        flip-top      = СТАРА верхня пластина, яка падає
+        flip-bottom   = НОВА нижня пластина, яка розкривається
+
+        Саме це створює ефект справжнього механічного перевороту.
       */
 
       setDigitText(
         digitEl,
         '.static-top .digit-num',
-        oldValue
+        newValue
       );
 
 
@@ -660,11 +807,6 @@
         oldValue
       );
 
-
-      /*
-        Нове значення
-        на нижній частині
-      */
 
       setDigitText(
         digitEl,
@@ -733,7 +875,7 @@
           );
 
 
-        }, 150);
+        }, 8);
 
     }
 
@@ -980,55 +1122,22 @@
     function calculateStep(difference) {
 
       /*
-        Якщо різниця невелика,
-        рахуємо по 100.
+        Реальний крок лічильника = 1.
+
+        Тепер число проходить:
+        123456
+        123457
+        123458
+        ...
+
+        Тому одиниці, десятки, сотні
+        та всі старші розряди реально
+        беруть участь у flip-анімації.
       */
 
-      if (
-        difference <=
-        MIN_COUNT_STEP *
-        MAX_ANIMATION_STEPS
-      ) {
-
-        return MIN_COUNT_STEP;
-
-      }
-
-
-      /*
-        Якщо різниця велика —
-        ділимо її приблизно
-        на 30 переходів.
-      */
-
-      let step =
-        Math.ceil(
-          difference /
-          MAX_ANIMATION_STEPS
-        );
-
-
-      /*
-        Округлюємо крок
-        до найближчої сотні вверх.
-
-        3333 -> 3400
-        5201 -> 5300
-      */
-
-      step =
-        Math.ceil(
-          step / 100
-        ) * 100;
-
-
-      return Math.max(
-        MIN_COUNT_STEP,
-        step
-      );
+      return 1;
 
     }
-
 
 
     /* =========================================
