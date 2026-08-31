@@ -326,25 +326,25 @@
 
     .flip-digit.play .flip-top {
       animation:
-        flipTop 0.0035s cubic-bezier(0.52, 0.02, 0.82, 0.48) forwards;
+        flipTop 0.38s cubic-bezier(0.52, 0.02, 0.82, 0.48) forwards;
     }
 
 
     .flip-digit.play .flip-top::after {
       animation:
-        flipTopShadow 0.0035s ease-in forwards;
+        flipTopShadow 0.38s ease-in forwards;
     }
 
 
     .flip-digit.play .flip-bottom {
       animation:
-        flipBottom 0.004s cubic-bezier(0.18, 0.58, 0.34, 1.00) 0.003s forwards;
+        flipBottom 0.40s cubic-bezier(0.18, 0.58, 0.34, 1.00) 0.30s forwards;
     }
 
 
     .flip-digit.play .flip-bottom::after {
       animation:
-        flipBottomShadow 0.004s ease-out 0.003s forwards;
+        flipBottomShadow 0.40s ease-out 0.30s forwards;
     }
 
 
@@ -634,7 +634,7 @@
       3600 = 3.6 секунди
     */
 
-    const COUNT_DURATION = 40;
+    const COUNT_DURATION = 650;
 
 
     /*
@@ -653,7 +653,7 @@
       flip встигав завершитися.
     */
 
-    const MIN_STEP_DELAY = 1;
+    const MIN_STEP_DELAY = 0;
 
 
 
@@ -676,6 +676,8 @@
     let animationRunning = false;
 
     let pendingValue = null;
+
+    let boardAnimationToken = 0;
 
 
     const mainBoard =
@@ -875,7 +877,7 @@
           );
 
 
-        }, 8);
+        }, 720);
 
     }
 
@@ -1141,30 +1143,282 @@
 
 
     /* =========================================
+       AIRPORT / SOLARI ДОПОМІЖНІ ФУНКЦІЇ
+    ========================================= */
+
+    function sleep(ms) {
+
+      return new Promise(resolve =>
+        setTimeout(resolve, ms)
+      );
+
+    }
+
+
+    function setDigitImmediate(
+      digitEl,
+      value
+    ) {
+
+      setDigitText(
+        digitEl,
+        '.static-top .digit-num',
+        value
+      );
+
+
+      setDigitText(
+        digitEl,
+        '.static-bottom .digit-num',
+        value
+      );
+
+
+      setDigitText(
+        digitEl,
+        '.flip-top .digit-num',
+        value
+      );
+
+
+      setDigitText(
+        digitEl,
+        '.flip-bottom .digit-num',
+        value
+      );
+
+
+      digitEl.dataset.value =
+        value;
+
+    }
+
+
+    function spinDigitToValue(
+      digitEl,
+      startDigit,
+      targetDigit,
+      stopDelay,
+      token
+    ) {
+
+      /*
+        AIRPORT BOARD:
+
+        УСІ цифри стартують ОДНОЧАСНО.
+
+        Потім:
+        1-а цифра зупиняється першою,
+        2-а — через ~1 секунду,
+        3-я — ще через ~1 секунду,
+        і так далі.
+
+        Ніяких while / for:
+        кожен flip запускається через setTimeout.
+      */
+
+      return new Promise(resolve => {
+
+        let currentDigit =
+          Number(startDigit);
+
+
+        const finalDigit =
+          Number(targetDigit);
+
+
+        if (
+          !Number.isFinite(currentDigit) ||
+          !Number.isFinite(finalDigit)
+        ) {
+
+          setDigitImmediate(
+            digitEl,
+            targetDigit
+          );
+
+          resolve();
+
+          return;
+
+        }
+
+
+        const startedAt =
+          performance.now();
+
+
+        /*
+          Швидкість постійного прокручування
+          одного розряду.
+        */
+
+        const SPIN_INTERVAL =
+          430;
+
+
+        function finishOnTarget() {
+
+          if (
+            token !==
+            boardAnimationToken
+          ) {
+
+            resolve();
+
+            return;
+
+          }
+
+
+          if (
+            currentDigit ===
+            finalDigit
+          ) {
+
+            setDigitImmediate(
+              digitEl,
+              String(finalDigit)
+            );
+
+            resolve();
+
+            return;
+
+          }
+
+
+          /*
+            Останній механічний flip
+            прямо на потрібну цифру.
+          */
+
+          flipDigit(
+            digitEl,
+            String(currentDigit),
+            String(finalDigit)
+          );
+
+
+          currentDigit =
+            finalDigit;
+
+
+          setTimeout(() => {
+
+            if (
+              token ===
+              boardAnimationToken
+            ) {
+
+              setDigitImmediate(
+                digitEl,
+                String(finalDigit)
+              );
+
+            }
+
+
+            resolve();
+
+          }, 760);
+
+        }
+
+
+        function spin() {
+
+          if (
+            token !==
+            boardAnimationToken
+          ) {
+
+            resolve();
+
+            return;
+
+          }
+
+
+          const elapsed =
+            performance.now() -
+            startedAt;
+
+
+          /*
+            Настав час цього розряду
+            "зафіксуватися" на правильній цифрі.
+          */
+
+          if (
+            elapsed >=
+            stopDelay
+          ) {
+
+            finishOnTarget();
+
+            return;
+
+          }
+
+
+          const nextDigit =
+            (currentDigit + 1) % 10;
+
+
+          flipDigit(
+            digitEl,
+            String(currentDigit),
+            String(nextDigit)
+          );
+
+
+          currentDigit =
+            nextDigit;
+
+
+          setTimeout(
+            spin,
+            SPIN_INTERVAL
+          );
+
+        }
+
+
+        /*
+          ВАЖЛИВО:
+          усі розряди запускаються одразу.
+        */
+
+        spin();
+
+      });
+
+    }
+
+    /* =========================================
        АНІМОВАНИЙ ВІДЛІК
     ========================================= */
 
-    function animateCounter(
+    async function animateCounter(
       startValue,
       targetValue
     ) {
 
       /*
-        Зупиняємо старий таймер,
-        якщо він залишився.
+        РЕЖИМ AIRPORT / SOLARI:
+
+        Не рахуємо все число кроками 1..2..3..4.
+        Замість цього кожний розряд
+        перегортається вперед і
+        число ЗБИРАЄТЬСЯ ПО ОДНОМУ,
+        як на табло в аеропортах.
       */
 
-      if (countTimer) {
+      boardAnimationToken += 1;
 
-        clearTimeout(
-          countTimer
-        );
-
-
-        countTimer =
-          null;
-
-      }
+      const token =
+        boardAnimationToken;
 
 
       if (
@@ -1195,206 +1449,180 @@
       );
 
 
-      const direction =
-        targetValue > startValue
-          ? 1
-          : -1;
-
-
-      const difference =
-        Math.abs(
-          targetValue -
-          startValue
-        );
+      const nextStr =
+        formatBoardValue(targetValue);
 
 
       /*
-        АДАПТИВНИЙ КРОК
+        Якщо кількість цифр змінилася,
+        просто перебудовуємо табло
+        під нову довжину.
       */
 
-      const adaptiveStep =
-        calculateStep(
-          difference
-        );
+      if (
+        !currentBoardString ||
+        nextStr.length !==
+        currentBoardString.length
+      ) {
 
+        buildMainBoard(targetValue);
 
-      /*
-        Скільки буде переходів
-      */
-
-      const totalSteps =
-        Math.max(
-          1,
-          Math.ceil(
-            difference /
-            adaptiveStep
-          )
-        );
-
-
-      /*
-        Швидкість одного переходу.
-      */
-
-      const stepDelay =
-        Math.max(
-          MIN_STEP_DELAY,
-          COUNT_DURATION /
-          totalSteps
-        );
-
-
-      let animatedValue =
-        startValue;
-
-
-      /*
-        Один крок анімації
-      */
-
-      function doStep() {
-
-
-        animatedValue +=
-          adaptiveStep *
-          direction;
-
-
-        /*
-          Не перестрибуємо
-          кінцеву цифру.
-        */
-
-        if (
-          direction > 0 &&
-          animatedValue >=
-          targetValue
-        ) {
-
-          animatedValue =
-            targetValue;
-
-        }
-
-
-        if (
-          direction < 0 &&
-          animatedValue <=
-          targetValue
-        ) {
-
-          animatedValue =
-            targetValue;
-
-        }
-
-
-        /*
-          FLIP
-        */
-
-        updateMainBoard(
-          animatedValue,
-          true
-        );
-
+        currentValue =
+          targetValue;
 
         displayedValue =
-          animatedValue;
+          targetValue;
 
+        animationRunning =
+          false;
 
-        /*
-          ФІНІШ
-        */
+        mainBoard.classList.remove(
+          'counting'
+        );
 
-        if (
-          animatedValue ===
-          targetValue
-        ) {
-
-          countTimer =
-            null;
-
-
-          currentValue =
-            targetValue;
-
-
-          displayedValue =
-            targetValue;
-
-
-          animationRunning =
-            false;
-
-
-          mainBoard.classList.remove(
-            'counting'
-          );
-
-
-          /*
-            Якщо Google Sheets
-            змінився ще раз,
-            поки ми рахували.
-          */
-
-          if (
-            pendingValue !== null &&
-            pendingValue !==
-            currentValue
-          ) {
-
-            const next =
-              pendingValue;
-
-
-            pendingValue =
-              null;
-
-
-            animateCounter(
-              displayedValue,
-              next
-            );
-
-          }
-
-          else {
-
-            pendingValue =
-              null;
-
-          }
-
-
-          return;
-
-        }
-
-
-        /*
-          Наступний крок.
-        */
-
-        countTimer =
-          setTimeout(
-            doStep,
-            stepDelay
-          );
+        return;
 
       }
 
 
-      /*
-        Перший flip запускаємо
-        одразу.
-      */
+      const oldStr =
+        currentBoardString;
 
-      doStep();
+
+      const jobs = [];
+
+      let changedOrder = 0;
+
+
+      for (
+        let i = 0;
+        i < nextStr.length;
+        i++
+      ) {
+
+        const oldDigit =
+          oldStr[i];
+
+
+        const newDigit =
+          nextStr[i];
+
+
+        const digitEl =
+          boardDigits[i];
+
+
+        if (
+          oldDigit ===
+          newDigit
+        ) {
+
+          setDigitImmediate(
+            digitEl,
+            newDigit
+          );
+
+          continue;
+
+        }
+
+
+        /*
+          УСІ цифри стартують одночасно.
+
+          Зупинка йде зліва направо:
+          1-а приблизно через 1.8 с,
+          2-а через 2.8 с,
+          3-я через 3.8 с,
+          і так далі.
+        */
+
+        const stopDelay =
+          1800 +
+          changedOrder * 1000;
+
+
+        jobs.push(
+          spinDigitToValue(
+            digitEl,
+            oldDigit,
+            newDigit,
+            stopDelay,
+            token
+          )
+        );
+
+
+        changedOrder += 1;
+
+      }
+
+
+      await Promise.all(
+        jobs
+      );
+
+
+      if (
+        token !==
+        boardAnimationToken
+      ) {
+
+        return;
+
+      }
+
+
+      currentBoardString =
+        nextStr;
+
+
+      currentValue =
+        targetValue;
+
+
+      displayedValue =
+        targetValue;
+
+
+      animationRunning =
+        false;
+
+
+      mainBoard.classList.remove(
+        'counting'
+      );
+
+
+      if (
+        pendingValue !== null &&
+        pendingValue !==
+        currentValue
+      ) {
+
+        const next =
+          pendingValue;
+
+
+        pendingValue =
+          null;
+
+
+        animateCounter(
+          displayedValue,
+          next
+        );
+
+      }
+
+      else {
+
+        pendingValue =
+          null;
+
+      }
 
     }
-
 
 
     /* =========================================
