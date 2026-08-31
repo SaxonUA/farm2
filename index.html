@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>WOT Кредити</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+
+    :root {
+      --orange: #FFA500;
+      --orange2: #ff8c00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+    }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+
+    /* =========================================
+       ОСНОВНИЙ ВІДЖЕТ
+    ========================================= */
+
+    .widget-box {
+      width: fit-content;
+
+      background: rgba(0, 0, 0, 0.65);
+
+      border: 3px solid var(--orange);
+      border-radius: 18px;
+
+      box-shadow:
+        0 0 22px rgba(255, 165, 0, 0.65),
+        inset 0 0 15px rgba(255, 165, 0, 0.06);
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      padding: 18px 26px;
+    }
+
+
+    /* =========================================
+       ЗАГОЛОВОК
+    ========================================= */
+
+    .header-text {
+      font-size: 38px;
+      font-weight: 700;
+
+      color: var(--orange);
+
+      margin-bottom: 14px;
+
+      text-shadow:
+        2px 2px 0 black,
+        0 0 9px rgba(255, 165, 0, 0.85);
+    }
+
+
+    /* =========================================
+       FLIP BOARD
+    ========================================= */
+
+    .main-flip-board {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      gap: 6px;
+
+      background: rgba(0, 0, 0, 0.42);
+
+      border: 2px solid var(--orange);
+      border-radius: 11px;
+
+      padding: 7px;
+
+      box-shadow:
+        inset 0 0 10px rgba(255, 165, 0, 0.30);
+
+      overflow: hidden;
+    }
+
+
+    /* =========================================
+       ОДНА ЦИФРА
+    ========================================= */
+
+    .flip-digit {
+      position: relative;
+
+      width: 68px;
+      height: 96px;
+
+      perspective: 420px;
+
+      border-radius: 8px;
+
+      background: #111;
+
+      box-shadow:
+        0 3px 7px rgba(0, 0, 0, 0.65);
+
+      overflow: hidden;
+
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 700;
+
+      color: #eeeeee;
+    }
+
+
+    /* центральна лінія */
+
+    .flip-digit::after {
+      content: "";
+
+      position: absolute;
+
+      left: 0;
+      right: 0;
+      top: 50%;
+
+      height: 1px;
+
+      background: rgba(0, 0, 0, 0.82);
+
+      z-index: 20;
+
+      pointer-events: none;
+    }
+
+
+    /* =========================================
+       ВЕРХНЯ / НИЖНЯ ПОЛОВИНА
+    ========================================= */
+
+    .digit-half {
+      position: absolute;
+
+      left: 0;
+
+      width: 100%;
+      height: 50%;
+
+      overflow: hidden;
+
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+    }
+
+
+    .digit-half.top {
+      top: 0;
+
+      border-radius: 8px 8px 0 0;
+
+      background:
+        linear-gradient(
+          to bottom,
+          #424242 0%,
+          #292929 100%
+        );
+    }
+
+
+    .digit-half.bottom {
+      bottom: 0;
+
+      border-radius: 0 0 8px 8px;
+
+      background:
+        linear-gradient(
+          to bottom,
+          #232323 0%,
+          #171717 100%
+        );
+    }
+
+
+    .digit-num {
+      position: absolute;
+
+      left: 0;
+
+      width: 100%;
+      height: 96px;
+
+      line-height: 96px;
+
+      text-align: center;
+
+      font-size: 88px;
+      font-weight: 700;
+
+      color: #eeeeee;
+
+      text-shadow: none;
+    }
+
+
+    .digit-half.top .digit-num {
+      top: 0;
+    }
+
+
+    .digit-half.bottom .digit-num {
+      bottom: 0;
+    }
+
+
+    /* =========================================
+       FLIP АНІМАЦІЯ
+    ========================================= */
+
+    .flip-top {
+      z-index: 10;
+
+      transform-origin: bottom;
+    }
+
+
+    .flip-bottom {
+      z-index: 9;
+
+      transform-origin: top;
+
+      transform: rotateX(90deg);
+    }
+
+
+    /*
+      Швидший flip.
+      Старий був приблизно 0.22-0.24 сек.
+    */
+
+    .flip-digit.play .flip-top {
+      animation:
+        flipTop 0.075s linear forwards;
+    }
+
+
+    .flip-digit.play .flip-bottom {
+      animation:
+        flipBottom 0.075s linear 0.06s forwards;
+    }
+
+
+    @keyframes flipTop {
+
+      0% {
+        transform: rotateX(0deg);
+      }
+
+      100% {
+        transform: rotateX(-90deg);
+      }
+
+    }
+
+
+    @keyframes flipBottom {
+
+      0% {
+        transform: rotateX(90deg);
+      }
+
+      100% {
+        transform: rotateX(0deg);
+      }
+
+    }
+
+
+    /* =========================================
+       РОЗДІЛЮВАЧ ТИСЯЧ
+    ========================================= */
+
+    .digit-separator {
+      width: 20px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-family: 'Orbitron', sans-serif;
+
+      font-size: 43px;
+      font-weight: 700;
+
+      color: var(--orange);
+
+      text-shadow:
+        0 0 7px var(--orange);
+
+      transform: translateY(-2px);
+    }
+
+
+    /* =========================================
+       НИЖНІЙ БЛОК
+    ========================================= */
+
+    .menu-list {
+      width: 100%;
+
+      margin-top: 13px;
+
+      padding: 9px 15px;
+
+      background: rgba(0, 0, 0, 0.24);
+
+      border: 1px solid rgba(255, 165, 0, 0.20);
+
+      border-radius: 10px;
+
+      text-align: center;
+
+      color: #cccccc;
+
+      text-shadow:
+        0 0 3px black;
+    }
+
+
+    .menu-title {
+      font-size: 25px;
+      font-weight: 700;
+
+      margin-bottom: 5px;
+    }
+
+
+    .donate-line {
+      font-family: Arial, sans-serif;
+
+      font-size: 27px;
+      font-weight: 600;
+    }
+
+
+    .highlight {
+      color: #ff9900;
+
+      text-shadow:
+        0 0 5px rgba(255, 153, 0, 0.4);
+    }
+
+
+    /* =========================================
+       ПІДСВІЧУВАННЯ ПІД ЧАС ВІДЛІКУ
+    ========================================= */
+
+    .main-flip-board.counting {
+      animation:
+        boardGlow 0.75s ease-in-out infinite alternate;
+    }
+
+
+    @keyframes boardGlow {
+
+      from {
+        box-shadow:
+          inset 0 0 10px rgba(255, 165, 0, 0.25),
+          0 0 4px rgba(255, 165, 0, 0.15);
+      }
+
+      to {
+        box-shadow:
+          inset 0 0 13px rgba(255, 165, 0, 0.40),
+          0 0 12px rgba(255, 165, 0, 0.50);
+      }
+
+    }
+
+  </style>
+</head>
+
+
+<body>
+
+  <div class="widget-box">
+
+    <div class="header-text">
+      💰 Залишилось нафармити 💰
+    </div>
+
+
+    <div
+      class="main-flip-board"
+      id="mainBoard">
+    </div>
+
+
+    <div class="menu-list">
+
+      <div class="menu-title">
+
+        <span class="highlight">
+          Глядачі можуть впливати на стрім
+        </span>
+
+      </div>
+
+
+      <div class="donate-line">
+
+        💰 За кожну 1 грн —
+
+        <span class="highlight">
+          +1 000
+        </span>
+
+        срібла
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <script>
+
+    /* =========================================
+       GOOGLE SHEETS
+    ========================================= */
+
+    const SHEET_ID =
+      '17phnEn-NW-OnrZg4DcW65r-Xoq6ScsdVjS5yL0SS3fk';
+
+
+    const SHEET_NAME =
+      'FARM';
+
+
+    const CELL_RANGE =
+      'C10';
+
+
+
+    /* =========================================
+       НАЛАШТУВАННЯ
+    ========================================= */
+
+
+    /*
+      Мінімальний крок.
+
+      Маленькі зміни будуть рахуватись:
+
+      1000
+      900
+      800
+      700...
+    */
+
+    const MIN_COUNT_STEP = 100;
+
+
+    /*
+      Максимальна кількість переходів.
+
+      Навіть якщо різниця 100 000,
+      він НЕ робитиме 1000 фліпів.
+
+      Він автоматично збільшить крок.
+    */
+
+    const MAX_ANIMATION_STEPS = 30;
+
+
+    /*
+      Орієнтовна максимальна
+      тривалість відліку.
+
+      3600 = 3.6 секунди
+    */
+
+    const COUNT_DURATION = 3600;
+
+
+    /*
+      Google Sheets перевіряємо
+      КОЖНІ 5 СЕКУНД
+    */
+
+    const UPDATE_INTERVAL = 5000;
+
+
+    /*
+      Мінімальна пауза між
+      окремими flip-переходами.
+
+      Це важливо, щоб механічний
+      flip встигав завершитися.
+    */
+
+    const MIN_STEP_DELAY = 165;
+
+
+
+    /* =========================================
+       VARIABLES
+    ========================================= */
+
+    let currentValue = null;
+
+    let displayedValue = null;
+
+    let latestTargetValue = null;
+
+    let currentBoardString = '';
+
+    let boardDigits = [];
+
+    let countTimer = null;
+
+    let animationRunning = false;
+
+    let pendingValue = null;
+
+
+    const mainBoard =
+      document.getElementById('mainBoard');
+
+
+
+    /* =========================================
+       HTML ОДНІЄЇ ЦИФРИ
+    ========================================= */
+
+    function makeDigitHTML(value) {
+
+      return `
+
+        <div class="digit-half top static-top">
+          <div class="digit-num">${value}</div>
+        </div>
+
+        <div class="digit-half bottom static-bottom">
+          <div class="digit-num">${value}</div>
+        </div>
+
+        <div class="digit-half top flip-top">
+          <div class="digit-num">${value}</div>
+        </div>
+
+        <div class="digit-half bottom flip-bottom">
+          <div class="digit-num">${value}</div>
+        </div>
+
+      `;
+
+    }
+
+
+
+    /* =========================================
+       ЗМІНА ТЕКСТУ ЦИФРИ
+    ========================================= */
+
+    function setDigitText(
+      digitEl,
+      selector,
+      value
+    ) {
+
+      const node =
+        digitEl.querySelector(selector);
+
+
+      if (node) {
+
+        node.textContent =
+          value;
+
+      }
+
+    }
+
+
+
+    /* =========================================
+       FLIP ОДНІЄЇ ЦИФРИ
+    ========================================= */
+
+    function flipDigit(
+      digitEl,
+      oldValue,
+      newValue
+    ) {
+
+      /*
+        Якщо цифра не змінилася —
+        нічого не робимо.
+      */
+
+      if (
+        oldValue === newValue
+      ) {
+
+        return;
+
+      }
+
+
+      digitEl.classList.remove(
+        'play'
+      );
+
+
+      /*
+        Примусовий reflow,
+        щоб CSS-анімація
+        запустилася повторно.
+      */
+
+      void digitEl.offsetWidth;
+
+
+      /*
+        Старе значення
+      */
+
+      setDigitText(
+        digitEl,
+        '.static-top .digit-num',
+        oldValue
+      );
+
+
+      setDigitText(
+        digitEl,
+        '.static-bottom .digit-num',
+        oldValue
+      );
+
+
+      setDigitText(
+        digitEl,
+        '.flip-top .digit-num',
+        oldValue
+      );
+
+
+      /*
+        Нове значення
+        на нижній частині
+      */
+
+      setDigitText(
+        digitEl,
+        '.flip-bottom .digit-num',
+        newValue
+      );
+
+
+      /*
+        Запускаємо FLIP
+      */
+
+      digitEl.classList.add(
+        'play'
+      );
+
+
+      clearTimeout(
+        digitEl._flipTimer
+      );
+
+
+      /*
+        Після завершення
+        встановлюємо нове число.
+      */
+
+      digitEl._flipTimer =
+        setTimeout(() => {
+
+
+          setDigitText(
+            digitEl,
+            '.static-top .digit-num',
+            newValue
+          );
+
+
+          setDigitText(
+            digitEl,
+            '.static-bottom .digit-num',
+            newValue
+          );
+
+
+          setDigitText(
+            digitEl,
+            '.flip-top .digit-num',
+            newValue
+          );
+
+
+          setDigitText(
+            digitEl,
+            '.flip-bottom .digit-num',
+            newValue
+          );
+
+
+          digitEl.dataset.value =
+            newValue;
+
+
+          digitEl.classList.remove(
+            'play'
+          );
+
+
+        }, 150);
+
+    }
+
+
+
+    /* =========================================
+       ФОРМАТ ЧИСЛА
+    ========================================= */
+
+    function formatBoardValue(value) {
+
+      return String(
+        Math.max(
+          0,
+          Math.round(value)
+        )
+      );
+
+    }
+
+
+
+    /* =========================================
+       СТВОРЕННЯ ВСЬОГО FLIP BOARD
+    ========================================= */
+
+    function buildMainBoard(value) {
+
+      const str =
+        formatBoardValue(value);
+
+
+      mainBoard.innerHTML =
+        '';
+
+
+      boardDigits =
+        [];
+
+
+      for (
+        let i = 0;
+        i < str.length;
+        i++
+      ) {
+
+
+        /*
+          Розділювач:
+
+          12’345’678
+        */
+
+        if (
+          i > 0 &&
+          (str.length - i) % 3 === 0
+        ) {
+
+          const separator =
+            document.createElement('div');
+
+
+          separator.className =
+            'digit-separator';
+
+
+          separator.textContent =
+            '’';
+
+
+          mainBoard.appendChild(
+            separator
+          );
+
+        }
+
+
+        const ch =
+          str[i];
+
+
+        const digit =
+          document.createElement('div');
+
+
+        digit.className =
+          'flip-digit';
+
+
+        digit.dataset.value =
+          ch;
+
+
+        digit.innerHTML =
+          makeDigitHTML(ch);
+
+
+        mainBoard.appendChild(
+          digit
+        );
+
+
+        boardDigits.push(
+          digit
+        );
+
+      }
+
+
+      currentBoardString =
+        str;
+
+    }
+
+
+
+    /* =========================================
+       ОНОВЛЕННЯ FLIP BOARD
+    ========================================= */
+
+    function updateMainBoard(
+      value,
+      animate = true
+    ) {
+
+      const nextStr =
+        formatBoardValue(value);
+
+
+      /*
+        Якщо змінилася кількість цифр:
+
+        999 900
+        ->
+        1 000 000
+
+        просто перебудовуємо табло.
+      */
+
+      if (
+        !currentBoardString ||
+        nextStr.length !==
+        currentBoardString.length
+      ) {
+
+        buildMainBoard(value);
+
+        return;
+
+      }
+
+
+      /*
+        Перевіряємо всі цифри.
+      */
+
+      for (
+        let i = 0;
+        i < nextStr.length;
+        i++
+      ) {
+
+        const oldValue =
+          currentBoardString[i];
+
+
+        const newValue =
+          nextStr[i];
+
+
+        if (
+          oldValue ===
+          newValue
+        ) {
+
+          continue;
+
+        }
+
+
+        const digitEl =
+          boardDigits[i];
+
+
+        if (animate) {
+
+          flipDigit(
+            digitEl,
+            oldValue,
+            newValue
+          );
+
+        }
+
+        else {
+
+          setDigitText(
+            digitEl,
+            '.static-top .digit-num',
+            newValue
+          );
+
+
+          setDigitText(
+            digitEl,
+            '.static-bottom .digit-num',
+            newValue
+          );
+
+
+          setDigitText(
+            digitEl,
+            '.flip-top .digit-num',
+            newValue
+          );
+
+
+          setDigitText(
+            digitEl,
+            '.flip-bottom .digit-num',
+            newValue
+          );
+
+
+          digitEl.dataset.value =
+            newValue;
+
+        }
+
+      }
+
+
+      currentBoardString =
+        nextStr;
+
+    }
+
+
+
+    /* =========================================
+       ВИЗНАЧЕННЯ АДАПТИВНОГО КРОКУ
+    ========================================= */
+
+    function calculateStep(difference) {
+
+      /*
+        Якщо різниця невелика,
+        рахуємо по 100.
+      */
+
+      if (
+        difference <=
+        MIN_COUNT_STEP *
+        MAX_ANIMATION_STEPS
+      ) {
+
+        return MIN_COUNT_STEP;
+
+      }
+
+
+      /*
+        Якщо різниця велика —
+        ділимо її приблизно
+        на 30 переходів.
+      */
+
+      let step =
+        Math.ceil(
+          difference /
+          MAX_ANIMATION_STEPS
+        );
+
+
+      /*
+        Округлюємо крок
+        до найближчої сотні вверх.
+
+        3333 -> 3400
+        5201 -> 5300
+      */
+
+      step =
+        Math.ceil(
+          step / 100
+        ) * 100;
+
+
+      return Math.max(
+        MIN_COUNT_STEP,
+        step
+      );
+
+    }
+
+
+
+    /* =========================================
+       АНІМОВАНИЙ ВІДЛІК
+    ========================================= */
+
+    function animateCounter(
+      startValue,
+      targetValue
+    ) {
+
+      /*
+        Зупиняємо старий таймер,
+        якщо він залишився.
+      */
+
+      if (countTimer) {
+
+        clearTimeout(
+          countTimer
+        );
+
+
+        countTimer =
+          null;
+
+      }
+
+
+      if (
+        startValue ===
+        targetValue
+      ) {
+
+        currentValue =
+          targetValue;
+
+        displayedValue =
+          targetValue;
+
+        animationRunning =
+          false;
+
+        return;
+
+      }
+
+
+      animationRunning =
+        true;
+
+
+      mainBoard.classList.add(
+        'counting'
+      );
+
+
+      const direction =
+        targetValue > startValue
+          ? 1
+          : -1;
+
+
+      const difference =
+        Math.abs(
+          targetValue -
+          startValue
+        );
+
+
+      /*
+        АДАПТИВНИЙ КРОК
+      */
+
+      const adaptiveStep =
+        calculateStep(
+          difference
+        );
+
+
+      /*
+        Скільки буде переходів
+      */
+
+      const totalSteps =
+        Math.max(
+          1,
+          Math.ceil(
+            difference /
+            adaptiveStep
+          )
+        );
+
+
+      /*
+        Швидкість одного переходу.
+      */
+
+      const stepDelay =
+        Math.max(
+          MIN_STEP_DELAY,
+          COUNT_DURATION /
+          totalSteps
+        );
+
+
+      let animatedValue =
+        startValue;
+
+
+      /*
+        Один крок анімації
+      */
+
+      function doStep() {
+
+
+        animatedValue +=
+          adaptiveStep *
+          direction;
+
+
+        /*
+          Не перестрибуємо
+          кінцеву цифру.
+        */
+
+        if (
+          direction > 0 &&
+          animatedValue >=
+          targetValue
+        ) {
+
+          animatedValue =
+            targetValue;
+
+        }
+
+
+        if (
+          direction < 0 &&
+          animatedValue <=
+          targetValue
+        ) {
+
+          animatedValue =
+            targetValue;
+
+        }
+
+
+        /*
+          FLIP
+        */
+
+        updateMainBoard(
+          animatedValue,
+          true
+        );
+
+
+        displayedValue =
+          animatedValue;
+
+
+        /*
+          ФІНІШ
+        */
+
+        if (
+          animatedValue ===
+          targetValue
+        ) {
+
+          countTimer =
+            null;
+
+
+          currentValue =
+            targetValue;
+
+
+          displayedValue =
+            targetValue;
+
+
+          animationRunning =
+            false;
+
+
+          mainBoard.classList.remove(
+            'counting'
+          );
+
+
+          /*
+            Якщо Google Sheets
+            змінився ще раз,
+            поки ми рахували.
+          */
+
+          if (
+            pendingValue !== null &&
+            pendingValue !==
+            currentValue
+          ) {
+
+            const next =
+              pendingValue;
+
+
+            pendingValue =
+              null;
+
+
+            animateCounter(
+              displayedValue,
+              next
+            );
+
+          }
+
+          else {
+
+            pendingValue =
+              null;
+
+          }
+
+
+          return;
+
+        }
+
+
+        /*
+          Наступний крок.
+        */
+
+        countTimer =
+          setTimeout(
+            doStep,
+            stepDelay
+          );
+
+      }
+
+
+      /*
+        Перший flip запускаємо
+        одразу.
+      */
+
+      doStep();
+
+    }
+
+
+
+    /* =========================================
+       GOOGLE SHEETS
+    ========================================= */
+
+    async function fetchSilver() {
+
+      /*
+        Додаємо timestamp,
+        щоб браузер/OBS не віддавав
+        стару кешовану відповідь.
+      */
+
+      const cacheBust =
+        Date.now();
+
+
+      const url =
+        `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq` +
+        `?tqx=out:json` +
+        `&sheet=${encodeURIComponent(SHEET_NAME)}` +
+        `&range=${CELL_RANGE}` +
+        `&_=${cacheBust}`;
+
+
+      try {
+
+        const response =
+          await fetch(
+            url,
+            {
+              cache: 'no-store'
+            }
+          );
+
+
+        if (
+          !response.ok
+        ) {
+
+          throw new Error(
+            `HTTP ${response.status}`
+          );
+
+        }
+
+
+        const text =
+          await response.text();
+
+
+        const start =
+          text.indexOf('{');
+
+
+        const end =
+          text.lastIndexOf('}') + 1;
+
+
+        if (
+          start === -1 ||
+          end <= start
+        ) {
+
+          throw new Error(
+            'Google Sheets повернув некоректну відповідь'
+          );
+
+        }
+
+
+        const json =
+          JSON.parse(
+            text.substring(
+              start,
+              end
+            )
+          );
+
+
+        const rawValue =
+          json?.table
+              ?.rows?.[0]
+              ?.c?.[0]
+              ?.v;
+
+
+        if (
+          rawValue === null ||
+          rawValue === undefined
+        ) {
+
+          return;
+
+        }
+
+
+        const newValue =
+          Math.max(
+            0,
+            Math.round(
+              Number(rawValue)
+            )
+          );
+
+
+        if (
+          !Number.isFinite(
+            newValue
+          )
+        ) {
+
+          return;
+
+        }
+
+
+        /*
+          Запам'ятовуємо найновіше
+          значення з таблиці.
+        */
+
+        latestTargetValue =
+          newValue;
+
+
+        /* =====================================
+           ПЕРШИЙ ЗАПУСК
+        ===================================== */
+
+        if (
+          currentValue === null
+        ) {
+
+          currentValue =
+            newValue;
+
+
+          displayedValue =
+            newValue;
+
+
+          buildMainBoard(
+            newValue
+          );
+
+
+          return;
+
+        }
+
+
+        /* =====================================
+           ЯКЩО ВЖЕ ЙДЕ АНІМАЦІЯ
+        ===================================== */
+
+        if (
+          animationRunning
+        ) {
+
+          /*
+            Просто запам'ятовуємо
+            найновішу ціль.
+          */
+
+          pendingValue =
+            newValue;
+
+
+          return;
+
+        }
+
+
+        /* =====================================
+           НІЧОГО НЕ ЗМІНИЛОСЬ
+        ===================================== */
+
+        if (
+          newValue ===
+          displayedValue
+        ) {
+
+          currentValue =
+            newValue;
+
+
+          return;
+
+        }
+
+
+        /* =====================================
+           ЗАПУСК НОВОЇ АНІМАЦІЇ
+        ===================================== */
+
+        animateCounter(
+          displayedValue,
+          newValue
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          'Помилка Google Sheets:',
+          error
+        );
+
+      }
+
+    }
+
+
+
+    /* =========================================
+       START
+    ========================================= */
+
+    fetchSilver();
+
+
+    /*
+      ПЕРЕВІРКА КОЖНІ 5 СЕКУНД
+    */
+
+    setInterval(
+      fetchSilver,
+      UPDATE_INTERVAL
+    );
+
+  </script>
+
+</body>
+</html>
