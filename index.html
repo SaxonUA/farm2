@@ -82,6 +82,19 @@
       align-items: center;
       justify-content: center;
 
+      /*
+        ФІКСОВАНИЙ РОЗМІР ОБЛАСТІ ТАБЛО.
+
+        Тепер при 6 цифрах самі картки збільшуються,
+        але зовнішня рамка і весь віджет
+        залишаються однакового розміру.
+      */
+
+      width: 580px;
+      height: 126px;
+
+      flex: 0 0 auto;
+
       gap: 6px;
 
       background: rgba(0, 0, 0, 0.42);
@@ -428,6 +441,29 @@
     }
 
 
+
+    /* =========================================
+       ЗБІЛЬШЕНИЙ РЕЖИМ ДЛЯ 6-ЗНАЧНОГО ЧИСЛА
+       Наприклад: 500 000
+    ========================================= */
+
+    .main-flip-board.six-digits .flip-digit {
+      width: 78px;
+      height: 108px;
+    }
+
+    .main-flip-board.six-digits .digit-num {
+      height: 108px;
+      line-height: 108px;
+      font-size: 98px;
+    }
+
+    .main-flip-board.six-digits .digit-separator {
+      width: 22px;
+      font-size: 48px;
+    }
+
+
     /* =========================================
        РОЗДІЛЮВАЧ ТИСЯЧ
     ========================================= */
@@ -757,7 +793,7 @@
 
 
       <div class="stat-window">
-        <div class="stat-title">ДОДАЛИ ГЛЯДАЧІ</div>
+        <div class="stat-title">ТРЕБА НАФАРМИТИ</div>
 
         <div class="stat-display">
           <div class="stat-value" id="goalValue">—</div>
@@ -1138,6 +1174,16 @@
     ========================================= */
 
     function buildBoardFromString(str) {
+
+      const visibleLength =
+        str.replace(/^0+/, '').length || 1;
+
+
+      mainBoard.classList.toggle(
+        'six-digits',
+        visibleLength === 6
+      );
+
 
       mainBoard.innerHTML =
         '';
@@ -2068,10 +2114,10 @@
 
       const duration =
         Math.min(
-          15000,
+          6000,
           Math.max(
-            5000,
-            Math.abs(difference) / 100
+            2500,
+            Math.abs(difference) / 900
           )
         );
 
