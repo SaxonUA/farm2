@@ -642,6 +642,13 @@
     }
 
 
+    .stat-value {
+      transition:
+        text-shadow 0.18s ease,
+        filter 0.18s ease;
+    }
+
+
     /* =========================================
        НИЖНІЙ БЛОК
     ========================================= */
@@ -892,6 +899,12 @@
     let pendingValue = null;
 
     let boardAnimationToken = 0;
+
+    let farmedDisplayedValue = 0;
+    let goalDisplayedValue = 0;
+
+    let farmedAnimationFrame = null;
+    let goalAnimationFrame = null;
 
 
     const mainBoard =
@@ -1987,6 +2000,231 @@
     }
 
 
+    function animateStatNumber(
+      element,
+      targetValue,
+      type
+    ) {
+
+      const target =
+        Math.max(
+          0,
+          Math.round(
+            Number(targetValue) || 0
+          )
+        );
+
+
+      let current =
+        type === 'farmed'
+          ? farmedDisplayedValue
+          : goalDisplayedValue;
+
+
+      const oldFrame =
+        type === 'farmed'
+          ? farmedAnimationFrame
+          : goalAnimationFrame;
+
+
+      if (
+        oldFrame !== null
+      ) {
+
+        cancelAnimationFrame(
+          oldFrame
+        );
+
+      }
+
+
+      if (
+        current === target
+      ) {
+
+        element.textContent =
+          formatStatNumber(target);
+
+        return;
+
+      }
+
+
+      const startValue =
+        current;
+
+
+      const difference =
+        target -
+        startValue;
+
+
+      /*
+        Тривалість анімації.
+
+        Великі зміни не будуть тривати
+        десятки секунд — максимум ~1.8 с.
+      */
+
+      const duration =
+        Math.min(
+          15000,
+          Math.max(
+            5000,
+            Math.abs(difference) / 100
+          )
+        );
+
+
+      const startedAt =
+        performance.now();
+
+
+      function easeOutCubic(t) {
+
+        return 1 -
+          Math.pow(
+            1 - t,
+            3
+          );
+
+      }
+
+
+      function frame(now) {
+
+        const elapsed =
+          now -
+          startedAt;
+
+
+        const progress =
+          Math.min(
+            1,
+            elapsed / duration
+          );
+
+
+        const eased =
+          easeOutCubic(
+            progress
+          );
+
+
+        current =
+          Math.round(
+            startValue +
+            difference * eased
+          );
+
+
+        element.textContent =
+          formatStatNumber(current);
+
+
+        if (
+          type === 'farmed'
+        ) {
+
+          farmedDisplayedValue =
+            current;
+
+        }
+
+        else {
+
+          goalDisplayedValue =
+            current;
+
+        }
+
+
+        if (
+          progress < 1
+        ) {
+
+          const id =
+            requestAnimationFrame(
+              frame
+            );
+
+
+          if (
+            type === 'farmed'
+          ) {
+
+            farmedAnimationFrame =
+              id;
+
+          }
+
+          else {
+
+            goalAnimationFrame =
+              id;
+
+          }
+
+          return;
+
+        }
+
+
+        element.textContent =
+          formatStatNumber(target);
+
+
+        if (
+          type === 'farmed'
+        ) {
+
+          farmedDisplayedValue =
+            target;
+
+          farmedAnimationFrame =
+            null;
+
+        }
+
+        else {
+
+          goalDisplayedValue =
+            target;
+
+          goalAnimationFrame =
+            null;
+
+        }
+
+      }
+
+
+      const id =
+        requestAnimationFrame(
+          frame
+        );
+
+
+      if (
+        type === 'farmed'
+      ) {
+
+        farmedAnimationFrame =
+          id;
+
+      }
+
+      else {
+
+        goalAnimationFrame =
+          id;
+
+      }
+
+    }
+
+
+
     async function fetchGoalValue() {
 
       try {
@@ -2020,8 +2258,11 @@
         }
 
 
-        goalValue.textContent =
-          formatStatNumber(value);
+        animateStatNumber(
+          goalValue,
+          value,
+          'goal'
+        );
 
       }
 
@@ -2075,8 +2316,11 @@
           );
 
 
-        farmedValue.textContent =
-          formatStatNumber(sum);
+        animateStatNumber(
+          farmedValue,
+          sum,
+          'farmed'
+        );
 
       }
 
